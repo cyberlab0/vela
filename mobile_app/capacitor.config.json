@@ -4,7 +4,7 @@
   "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://vela-ai.production.com",
+    "url": "https://vela-18xy.onrender.com",
     "cleartext": true
   }
 }
