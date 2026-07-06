@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VELA - Finance</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='global_bank.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -34,9 +35,14 @@
     </nav>
 
     <main class="main-content">
-        <header class="top-bar animate-slide-up" style="margin-bottom: 2rem;">
-            <h1><i class="fas fa-wallet" style="color: var(--color-success);"></i> Finance (Plaid Connected)</h1>
-            <p style="color: #a1a1aa;">AI driven financial insights and automatic budget fixes.</p>
+        <header class="top-bar animate-slide-up" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1><i class="fas fa-wallet" style="color: var(--color-success);"></i> Finance (Global Link)</h1>
+                <p style="color: #a1a1aa;">AI driven financial insights and automatic budget fixes.</p>
+            </div>
+            <button class="primary-btn hover-lift ripple-glow" onclick="openGlobalBankModal()" style="background: var(--color-success); color: #000; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-globe"></i> Connect Global Bank
+            </button>
         </header>
 
         <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;" class="animate-slide-up">
@@ -90,7 +96,107 @@
             </div>
 
         </div>
+        </div>
+
+        <!-- Universal Global Bank Linker Modal -->
+        <div id="globalBankModal" class="modal-overlay" style="display: none;">
+            <div class="modal-content glass-panel animate-scale-up" style="max-width: 600px; width: 100%; position: relative; overflow: hidden;">
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="display: flex; align-items: center; gap: 10px;"><i class="fas fa-university" style="color: var(--color-info)"></i> Universal Financial Gateway</h2>
+                    <button onclick="closeGlobalBankModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer;"><i class="fas fa-times"></i></button>
+                </div>
+
+                <!-- Dynamic Content Area -->
+                <div id="modalStep1">
+                    <p style="color: #a1a1aa; margin-bottom: 1.5rem;">Connect to 15,000+ banks worldwide. Select your region to begin.</p>
+                    
+                    <!-- Region Tabs -->
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 0.5rem;" class="hide-scrollbar">
+                        <button class="region-tab active">North America</button>
+                        <button class="region-tab">Europe (SEPA)</button>
+                        <button class="region-tab">Asia Pacific</button>
+                        <button class="region-tab">LATAM</button>
+                        <button class="region-tab">Africa</button>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div style="position: relative; margin-bottom: 1.5rem;">
+                        <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #a1a1aa;"></i>
+                        <input type="text" placeholder="Search for your bank..." style="width: 100%; padding: 1rem 1rem 1rem 3rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.5); color: white; font-family: inherit; font-size: 1rem; box-sizing: border-box;">
+                    </div>
+
+                    <!-- Mock Bank List -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-height: 300px; overflow-y: auto;" class="hide-scrollbar">
+                        <div class="bank-card" onclick="simulateBankConnection('Chase Bank')">
+                            <i class="fas fa-building" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                            <strong>Chase</strong>
+                        </div>
+                        <div class="bank-card" onclick="simulateBankConnection('Bank of America')">
+                            <i class="fas fa-landmark" style="font-size: 1.5rem; color: #ef4444;"></i>
+                            <strong>Bank of America</strong>
+                        </div>
+                        <div class="bank-card" onclick="simulateBankConnection('Monzo')">
+                            <i class="fas fa-credit-card" style="font-size: 1.5rem; color: #f59e0b;"></i>
+                            <strong>Monzo (UK)</strong>
+                        </div>
+                        <div class="bank-card" onclick="simulateBankConnection('N26')">
+                            <i class="fas fa-piggy-bank" style="font-size: 1.5rem; color: #10b981;"></i>
+                            <strong>N26 (Europe)</strong>
+                        </div>
+                        <div class="bank-card" onclick="simulateBankConnection('Nubank')">
+                            <i class="fas fa-wallet" style="font-size: 1.5rem; color: #8b5cf6;"></i>
+                            <strong>Nubank (Brazil)</strong>
+                        </div>
+                        <div class="bank-card" onclick="simulateBankConnection('Standard Bank')">
+                            <i class="fas fa-chart-bar" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                            <strong>Standard Bank (SA)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loading Step -->
+                <div id="modalStep2" style="display: none; text-align: center; padding: 3rem 1rem;">
+                    <div class="gateway-spinner"></div>
+                    <h3 style="margin-top: 1.5rem;" id="loadingBankName">Connecting to Secure Gateway...</h3>
+                    <p style="color: #a1a1aa; margin-top: 0.5rem; font-size: 0.9rem;">Establishing 256-bit encrypted tunnel.</p>
+                </div>
+
+                <!-- Success Step -->
+                <div id="modalStep3" style="display: none; text-align: center; padding: 3rem 1rem;">
+                    <i class="fas fa-check-circle animate-scale-up" style="font-size: 4rem; color: var(--color-success); margin-bottom: 1.5rem;"></i>
+                    <h3>Successfully Linked!</h3>
+                    <p style="color: #a1a1aa; margin-top: 0.5rem;">Your accounts are now syncing globally.</p>
+                    <button class="primary-btn" style="margin-top: 2rem; width: 100%;" onclick="closeGlobalBankModal()">Return to Dashboard</button>
+                </div>
+            </div>
+        </div>
     </main>
+
+    <script>
+        function openGlobalBankModal() {
+            document.getElementById('globalBankModal').style.display = 'flex';
+            document.getElementById('modalStep1').style.display = 'block';
+            document.getElementById('modalStep2').style.display = 'none';
+            document.getElementById('modalStep3').style.display = 'none';
+        }
+
+        function closeGlobalBankModal() {
+            document.getElementById('globalBankModal').style.display = 'none';
+        }
+
+        function simulateBankConnection(bankName) {
+            document.getElementById('modalStep1').style.display = 'none';
+            document.getElementById('modalStep2').style.display = 'block';
+            document.getElementById('loadingBankName').innerText = `Connecting to ${bankName}...`;
+            
+            // Simulate API Handshake Delay
+            setTimeout(() => {
+                document.getElementById('modalStep2').style.display = 'none';
+                document.getElementById('modalStep3').style.display = 'block';
+            }, 3000);
+        }
+    </script>
 
 
 <!-- Google Translate Widget -->
