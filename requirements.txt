@@ -4,3 +4,4 @@ plaid-python
 google-generativeai
 python-dotenv
 requests
+gunicorn
