@@ -6,3 +6,8 @@ python-dotenv
 requests
 gunicorn
 pycountry
+Flask-SocketIO
+Flask-SQLAlchemy
+Flask-Limiter
+cryptography
+eventlet
