@@ -288,6 +288,10 @@ def generate_profile_id():
 
 # --- HONEYPOT ROUTES ---
 
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
 @app.route('/wp-admin')
 @app.route('/admin/phpmyadmin')
 @app.route('/.env')
