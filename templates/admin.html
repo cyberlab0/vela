@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELA Super Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            color: white;
+            font-size: 0.9em;
+        }
+        .admin-table th, .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .admin-table th {
+            color: #a1a1aa;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+        }
+        .admin-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .badge-banned { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .badge-active { background: rgba(52, 211, 153, 0.2); color: #34d399; }
+        .badge-admin { background: rgba(96, 165, 250, 0.2); color: #60a5fa; }
+        
+        .search-bar {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <div class="sidebar">
+        <h2 class="logo-title" style="color: #ef4444;"><i class="fas fa-shield-alt"></i> VELA Admin</h2>
+        <ul class="nav-links">
+            <li class="active"><i class="fas fa-users"></i> Users</li>
+            <li><a href="{{ url_for('dashboard') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-arrow-left"></i> Exit Admin</a></li>
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <header class="top-bar animate-slide-up" style="margin-bottom: 2rem;">
+            <h1><i class="fas fa-satellite-dish animate-pulse-red" style="color: var(--color-alert);"></i> Global Command Center</h1>
+            <p style="color: #a1a1aa;">Security Operations Center (SOC) - Elite Access</p>
+        </header>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;" class="animate-slide-up">
+            <button class="primary-btn ripple" style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5); color: #93c5fd; padding: 1.5rem;"><i class="fas fa-network-wired" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br>System Control</button>
+            <button class="primary-btn ripple" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); color: #6ee7b7; padding: 1.5rem;"><i class="fas fa-users-cog" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br>User Management</button>
+            <button class="primary-btn ripple" style="background: rgba(139, 92, 246, 0.2); border-color: rgba(139, 92, 246, 0.5); color: #c084fc; padding: 1.5rem;"><i class="fas fa-brain" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br>AI Control</button>
+            <button class="primary-btn ripple" style="background: rgba(251, 191, 36, 0.2); border-color: rgba(251, 191, 36, 0.5); color: #fde68a; padding: 1.5rem;"><i class="fas fa-bug" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br>Debug Mode</button>
+            <form method="POST" action="{{ url_for('admin_lockdown') }}" style="display: contents;">
+                <button type="submit" class="primary-btn animate-pulse-red ripple" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.8); color: #fca5a5; padding: 1.5rem;"><i class="fas fa-lock" style="font-size: 2rem; margin-bottom: 0.5rem;"></i><br>LOCK EVERYTHING</button>
+            </form>
+        </div>
+
+        <div class="glass-panel animate-slide-up" style="border-color: rgba(239, 68, 68, 0.4); margin-bottom: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="color: var(--color-alert);"><i class="fas fa-globe"></i> Live Threat Visualizer & Diagnostics</h3>
+                <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: var(--color-success);"><i class="fas fa-circle animate-pulse-glow"></i> SYSTEMS NOMINAL</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <!-- Threat Map Placeholder (CSS generated) -->
+                <div style="background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; position: relative; height: 300px; overflow: hidden; background-image: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);">
+                    <div style="position: absolute; top: 30%; left: 20%; width: 10px; height: 10px; background: var(--color-alert); border-radius: 50%; box-shadow: 0 0 15px var(--color-alert);" class="animate-pulse-red"></div>
+                    <div style="position: absolute; top: 60%; left: 70%; width: 8px; height: 8px; background: var(--color-warning); border-radius: 50%; box-shadow: 0 0 10px var(--color-warning);" class="animate-pulse-glow"></div>
+                    <div style="position: absolute; top: 40%; left: 50%; width: 5px; height: 5px; background: var(--color-success); border-radius: 50%;"></div>
+                    <!-- Lines connecting them -->
+                    <svg width="100%" height="100%" style="position: absolute; top: 0; left: 0; pointer-events: none;">
+                        <path d="M 20% 30% Q 40% 10% 50% 40% T 70% 60%" fill="transparent" stroke="rgba(239, 68, 68, 0.3)" stroke-width="2" stroke-dasharray="5,5"></path>
+                    </svg>
+                    <div style="position: absolute; bottom: 10px; left: 10px; font-family: monospace; color: var(--color-alert); font-size: 0.8rem;">DETECTED ATTACK ORIGIN: UNKNOWN IP (3 ATTEMPTS)</div>
+                </div>
+
+                <!-- Stats Rings -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: center; align-content: center;">
+                    <div>
+                        <h4 style="color: #a1a1aa; margin-bottom: 1rem;">CPU Load</h4>
+                        <div class="score-circle animate-pulse-glow" style="position: relative; width: 100px; height: 100px; font-size: 1.5rem; margin: auto;">
+                            <span id="cpu-text">42</span>%
+                            <svg width="116" height="116" style="position: absolute; top: -8px; left: -8px; transform: rotate(-90deg);">
+                                <circle cx="58" cy="58" r="54" fill="transparent" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+                                <circle id="cpu-ring" cx="58" cy="58" r="54" fill="transparent" stroke="var(--color-alert)" stroke-width="8" stroke-dasharray="339" stroke-dashoffset="196" style="transition: stroke-dashoffset 1s ease-in-out;" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="color: #a1a1aa; margin-bottom: 1rem;">Active Sessions</h4>
+                        <div class="score-circle animate-pulse-glow" style="position: relative; width: 100px; height: 100px; font-size: 1.5rem; margin: auto;">
+                            <span id="users-text">14.0</span>k
+                            <svg width="116" height="116" style="position: absolute; top: -8px; left: -8px; transform: rotate(-90deg);">
+                                <circle cx="58" cy="58" r="54" fill="transparent" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+                                <circle id="users-ring" cx="58" cy="58" r="54" fill="transparent" stroke="var(--color-success)" stroke-width="8" stroke-dasharray="339" stroke-dashoffset="84" style="transition: stroke-dashoffset 1s ease-in-out;" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: rgba(0,0,0,0.8); padding: 1.5rem; border-radius: 8px; font-family: monospace; color: var(--color-success); height: 200px; overflow: hidden; position: relative; border: 1px solid rgba(16, 185, 129, 0.3);">
+                <div id="sys-logs" style="opacity: 0.9; line-height: 1.6; display: flex; flex-direction: column; justify-content: flex-end; height: 100%;">
+                    <div>[SYS] Connection established to Master Node...</div>
+                    <div>[SYS] Awaiting live WebSocket telemetry...</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button class="primary-btn ripple" style="background: rgba(251, 191, 36, 0.2); border-color: var(--color-warning); color: #fde68a;"><i class="fas fa-vial"></i> Enable Simulation Mode</button>
+            </div>
+        </div>
+
+        <div class="glass-panel animate-slide-up">
+            <h2 style="margin-bottom: 1rem;"><i class="fas fa-database" style="color: var(--color-info);"></i> Database Core</h2>
+            
+            <form method="GET" action="{{ url_for('admin_dashboard') }}" style="margin-bottom: 1rem;">
+                <input type="text" name="q" class="search-bar" placeholder="Search entity ID, logs, or traces..." value="{{ query }}">
+            </form>
+            
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Entity ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Status Code</th>
+                            <th>Ingested</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td style="font-family: monospace; font-size: 1.1em; color: #60a5fa;">#{{ u.profile_id }}</td>
+                            <td>{{ u.name }}</td>
+                            <td>{{ u.email }}</td>
+                            <td>
+                                {% if u.is_admin %}
+                                    <span class="badge badge-admin">SYS_ADMIN</span>
+                                {% elif u.is_banned %}
+                                    <span class="badge badge-banned">QUARANTINED</span>
+                                {% else %}
+                                    <span class="badge badge-active">ACTIVE</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ u.registration_date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <a href="#" class="primary-btn ripple" style="padding: 0.5rem 1rem; font-size: 0.8em; text-decoration: none;">Trace Logs</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating Support -->
+    <a href="{{ url_for('support') }}" class="floating-support" title="Need Help?">
+        <i class="fas fa-comment-dots"></i>
+    </a>
+
+<!-- Google Translate Widget -->
+<div id='google_translate_element' style='display:none;'></div>
+<script type='text/javascript'>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+}
+
+// WebSocket Integration for Live Admin Diagnostics
+document.addEventListener("DOMContentLoaded", () => {
+    const cpuRing = document.getElementById('cpu-ring');
+    const cpuText = document.getElementById('cpu-text');
+    const usersRing = document.getElementById('users-ring');
+    const usersText = document.getElementById('users-text');
+    const netRing = document.getElementById('network-ring');
+    const netText = document.getElementById('network-text');
+
+    const totalDash = 339; // 2 * pi * 54
+    
+    // Connect to WebSocket
+    const socket = io();
+    
+    socket.on('connect', () => {
+        console.log("Secure connection established to VELA SOC.");
+    });
+    
+    socket.on('admin_stats', (data) => {
+        // Update CPU
+        cpuText.innerText = data.cpu;
+        cpuRing.style.strokeDashoffset = totalDash - (totalDash * (data.cpu / 100));
+
+        // Update Users
+        usersText.innerText = data.users;
+        usersRing.style.strokeDashoffset = totalDash - (totalDash * (data.users / 20));
+
+        // Update Network
+        netText.innerText = data.network;
+        netRing.style.strokeDashoffset = totalDash - (totalDash * (data.network / 2));
+        
+        // Append log
+        const logContainer = document.getElementById('sys-logs');
+        if (logContainer) {
+            const newLog = document.createElement('div');
+            newLog.className = 'animate-slide-up';
+            newLog.innerHTML = data.log;
+            logContainer.appendChild(newLog);
+            if (logContainer.children.length > 7) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+    });
+    
+    socket.on('admin_alert', (data) => {
+        // Global alert e.g. "User logged in"
+        const logContainer = document.getElementById('sys-logs');
+        if (logContainer) {
+            const newLog = document.createElement('div');
+            newLog.className = 'animate-slide-up';
+            newLog.innerHTML = `<span style="color: var(--color-info);">[GLOBAL] ${data.message}</span>`;
+            logContainer.appendChild(newLog);
+            if (logContainer.children.length > 7) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+    });
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script type='text/javascript' src='//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'></script>
+</body>
+
+</html>

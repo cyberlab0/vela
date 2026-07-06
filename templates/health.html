@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELA - Health</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .health-stat {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .health-stat h4 { margin: 0; color: #a1a1aa; font-weight: 400; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; }
+        .health-stat .val { font-size: 2.5rem; font-weight: bold; margin: 0.5rem 0; }
+        
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9em;
+        }
+        .log-table th, .log-table td { padding: 0.8rem; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .log-table th { color: #a1a1aa; text-transform: uppercase; font-size: 0.8em; letter-spacing: 1px; }
+    </style>
+</head>
+<body class="dashboard-body">
+    
+    <!-- Sidebar -->
+    <nav class="sidebar glass-panel">
+        <div class="logo-area animate-pulse-glow"><h2>VELA</h2></div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('dashboard') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{{ url_for('schedule') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-calendar-alt"></i> Schedule</a></li>
+            <li><a href="{{ url_for('finance') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-wallet" style="color: var(--color-success)"></i> Finance</a></li>
+            <li><a href="{{ url_for('memory') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-brain" style="color: var(--color-info)"></i> Second Brain</a></li>
+            <li><a href="{{ url_for('health') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-heartbeat"></i> Health</a></li>
+            <li><a href="{{ url_for('automations') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-bolt"></i> Routines</a></li>
+            <li><a href="{{ url_for('gamification') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-trophy" style="color: var(--color-warning)"></i> Gamification</a></li>
+            <li><a href="{{ url_for('insights') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-chart-pie"></i> AI Insights</a></li>
+            <li><a href="{{ url_for('trust') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-shield-alt"></i> Security</a></li>
+            <li><a href="{{ url_for('settings') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+        <div class="user-profile animate-fade-in">
+            <div class="avatar">{{ profile.name[0].upper() if profile.name else 'U' }}</div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-weight: 500;">{{ profile.name }}</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-btn" style="margin-left: auto;"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar animate-slide-up" style="margin-bottom: 2rem;">
+            <h1><i class="fas fa-heartbeat" style="color: #f87171;"></i> AI Wellness Starts With You</h1>
+            <p style="color: #a1a1aa;">Track your sleep, heart, and overall wellness daily with smart AI.</p>
+        </header>
+
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;" class="animate-slide-up">
+            <button class="primary-btn ripple" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;"><i class="fas fa-magic"></i> Optimize Health</button>
+            <button class="primary-btn ripple" style="background: rgba(139, 92, 246, 0.2); border-color: rgba(139, 92, 246, 0.5); color: #c084fc;"><i class="fas fa-moon"></i> Sleep Better Plan</button>
+            <button class="primary-btn ripple" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); color: #6ee7b7;"><i class="fas fa-dumbbell"></i> Workout Suggestion</button>
+            <button class="primary-btn ripple" style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5); color: #93c5fd;"><i class="fas fa-tint"></i> Hydration Reminder</button>
+            <button class="primary-btn ripple" style="background: rgba(251, 191, 36, 0.2); border-color: rgba(251, 191, 36, 0.5); color: #fde68a;"><i class="fas fa-brain"></i> Stress Check</button>
+        </div>
+
+        <!-- Top Stats Row (Apple Rings Style) -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;" class="animate-slide-up">
+            <div class="glass-panel" style="text-align: center; position: relative;">
+                <svg class="svg-ring" width="100" height="100">
+                    <circle class="svg-ring-bg" cx="50" cy="50" r="40" />
+                    <circle id="move-ring" class="svg-ring-fg" cx="50" cy="50" r="40" stroke="var(--color-info)" style="stroke-dashoffset: 251; transition: stroke-dashoffset 1.5s ease-out;" />
+                </svg>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2rem; font-weight: bold;">
+                    <i class="fas fa-walking" style="color: var(--color-info);"></i>
+                </div>
+                <h4 style="margin-top: 1rem; color: #a1a1aa; font-weight: 400;">Move</h4>
+                <div class="val" id="move-text">{{ today_log.calories if today_log and today_log.calories else '346' }} / 500</div>
+            </div>
+            
+            <div class="glass-panel" style="text-align: center; position: relative;">
+                <i class="fas fa-heart animate-heartbeat" style="font-size: 4rem; color: var(--color-alert); margin-top: 10px;"></i>
+                <h4 style="margin-top: 1.5rem; color: #a1a1aa; font-weight: 400;">Heart Rate</h4>
+                <div class="val" style="font-size: 1.5rem; font-weight: bold;"><span id="bpm-text">67</span> <span style="font-size: 0.5em;">BPM</span></div>
+            </div>
+
+            <div class="glass-panel" style="text-align: center; position: relative;">
+                <svg class="svg-ring" width="100" height="100">
+                    <circle class="svg-ring-bg" cx="50" cy="50" r="40" />
+                    <circle id="sleep-ring" class="svg-ring-fg" cx="50" cy="50" r="40" stroke="var(--color-success)" style="stroke-dashoffset: 251; transition: stroke-dashoffset 1.5s ease-out;" />
+                </svg>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.2rem; font-weight: bold;">
+                    <i class="fas fa-bed" style="color: var(--color-success);"></i>
+                </div>
+                <h4 style="margin-top: 1rem; color: #a1a1aa; font-weight: 400;">Sleep</h4>
+                <div class="val">7.2 hrs</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <!-- Left: Add Log Form -->
+            <div class="glass-panel">
+                <h3 style="margin-bottom: 1.5rem;">Update Today's Metrics</h3>
+                <form method="POST" action="{{ url_for('health') }}" class="auth-form">
+                    <input type="hidden" name="date" value="{{ today }}">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="input-group">
+                            <label>Weight (lbs)</label>
+                            <input type="number" step="0.1" name="weight_lbs" value="{{ today_log.weight_lbs if today_log else '' }}">
+                        </div>
+                        <div class="input-group">
+                            <label>Calories</label>
+                            <input type="number" name="calories" value="{{ today_log.calories if today_log else '' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Glasses of Water</label>
+                        <input type="number" name="water_glasses" value="{{ today_log.water_glasses if today_log else '' }}">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Workout Notes (e.g., 'Leg day, ran 2 miles')</label>
+                        <textarea name="workout_notes" rows="3">{{ today_log.workout_notes if today_log else '' }}</textarea>
+                    </div>
+                    
+                    <button type="submit" class="primary-btn" style="width: 100%; margin-top: 1rem;"><i class="fas fa-save"></i> Save Metrics</button>
+                </form>
+            </div>
+
+            <!-- Right: History -->
+            <div class="glass-panel">
+                <h3 style="margin-bottom: 1.5rem;">History Log</h3>
+                <div style="overflow-x: auto; max-height: 400px;">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Weight</th>
+                                <th>Calories</th>
+                                <th>Workout</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td style="color: #60a5fa;">{{ log.date.strftime('%b %d') }}</td>
+                                <td>{{ log.weight_lbs }}</td>
+                                <td>{{ log.calories }}</td>
+                                <td style="color: #a1a1aa; font-style: italic;">{{ log.workout_notes }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #a1a1aa;">No history yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+<!-- Google Translate Widget -->
+<div id='google_translate_element' style='display:none;'></div>
+<script type='text/javascript'>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Animate rings on load
+    setTimeout(() => {
+        const moveRing = document.getElementById('move-ring');
+        if (moveRing) {
+            // Target offset based on calories out of 500
+            const calories = parseInt("{{ today_log.calories if today_log and today_log.calories else '346' }}");
+            const percentage = Math.min(calories / 500, 1);
+            moveRing.style.strokeDashoffset = 251 - (251 * percentage);
+        }
+        
+        const sleepRing = document.getElementById('sleep-ring');
+        if (sleepRing) {
+            // Target offset for 7.2 hours out of 8
+            const percentage = Math.min(7.2 / 8.0, 1);
+            sleepRing.style.strokeDashoffset = 251 - (251 * percentage);
+        }
+    }, 300);
+
+    // Live Heart Rate simulation
+    const bpmText = document.getElementById('bpm-text');
+    setInterval(() => {
+        if (bpmText) {
+            // Randomly fluctuate between 62 and 72
+            bpmText.innerText = Math.floor(Math.random() * 10) + 62;
+        }
+    }, 2500);
+});
+</script>
+<script type='text/javascript' src='//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'></script>
+</body>
+
+</html>

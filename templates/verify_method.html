@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELA - Verify Identity</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .method-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        .method-btn:hover {
+            background: rgba(96, 165, 250, 0.2);
+            border-color: #60a5fa;
+            transform: translateY(-2px);
+        }
+        .method-btn i {
+            font-size: 1.4rem;
+        }
+    </style>
+</head>
+<body class="auth-body">
+    <div class="auth-container glass-panel" style="max-width: 450px; text-align: center;">
+        <h1 class="logo-title" style="font-size: 2rem;">Secure Verification</h1>
+        <p class="subtitle" style="margin-bottom: 2rem;">How would you like to receive your 6-digit access code?</p>
+        
+        <form method="POST" action="{{ url_for('send_code') }}">
+            <button type="submit" name="method" value="email" class="method-btn">
+                <i class="fas fa-envelope" style="color: #f87171;"></i> Send via Email
+            </button>
+            <button type="submit" name="method" value="sms" class="method-btn">
+                <i class="fas fa-sms" style="color: #60a5fa;"></i> Send via SMS
+            </button>
+            <button type="submit" name="method" value="whatsapp" class="method-btn">
+                <i class="fab fa-whatsapp" style="color: #34d399;"></i> Send via WhatsApp
+            </button>
+        </form>
+        
+        <p style="margin-top: 2rem; color: #a1a1aa; font-size: 0.9em;">We use secure delivery channels to protect your identity.</p>
+    </div>
+
+<!-- Google Translate Widget -->
+<div id='google_translate_element' style='display:none;'></div>
+<script type='text/javascript'>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+}
+</script>
+<script type='text/javascript' src='//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'></script>
+</body>
+
+</html>

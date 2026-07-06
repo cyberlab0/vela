@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELA - Support Center</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .support-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            height: calc(100vh - 150px);
+        }
+        
+        .ai-chat-box {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .message-bubble {
+            max-width: 80%;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            line-height: 1.5;
+            position: relative;
+        }
+        
+        .message-bubble.ai {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-bubble.user {
+            background: linear-gradient(135deg, var(--color-info), var(--color-purple));
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .action-button {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+        }
+        
+        .action-button:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .action-button.critical {
+            border-color: rgba(239, 68, 68, 0.5);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        .action-button.critical:hover {
+            background: rgba(239, 68, 68, 0.2);
+            box-shadow: 0 5px 20px rgba(239, 68, 68, 0.3);
+        }
+        
+        .input-bar {
+            display: flex;
+            gap: 10px;
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--border-color);
+            border-radius: 0 0 16px 16px;
+        }
+        
+        .input-bar input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            font-size: 1.1rem;
+            outline: none;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    
+    <nav class="sidebar glass-panel">
+        <div class="logo-area animate-pulse-glow"><h2>VELA</h2></div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('dashboard') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{{ url_for('schedule') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-calendar-alt"></i> Schedule</a></li>
+            <li><a href="{{ url_for('finance') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-wallet" style="color: var(--color-success)"></i> Finance</a></li>
+            <li><a href="{{ url_for('memory') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-brain" style="color: var(--color-info)"></i> Second Brain</a></li>
+            <li><a href="{{ url_for('health') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-heartbeat"></i> Health</a></li>
+            <li><a href="{{ url_for('automations') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-bolt"></i> Routines</a></li>
+            <li><a href="{{ url_for('gamification') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-trophy" style="color: var(--color-warning)"></i> Gamification</a></li>
+            <li><a href="{{ url_for('insights') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-chart-pie"></i> AI Insights</a></li>
+            <li><a href="{{ url_for('trust') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-shield-alt"></i> Security</a></li>
+            <li><a href="{{ url_for('settings') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+        <div class="user-profile animate-fade-in">
+            <div class="avatar">{{ profile.name[0].upper() if profile.name else 'U' }}</div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-weight: 500;">{{ profile.name }}</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-btn" style="margin-left: auto;"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar page-transition" style="margin-bottom: 2rem;">
+            <h1><i class="fas fa-headset" style="color: var(--color-info);"></i> Support Center</h1>
+            <p style="color: var(--text-secondary);">AI-First assistance ready to help.</p>
+        </header>
+
+        <div class="support-grid page-transition" style="animation-delay: 0.1s;">
+            <!-- AI Support Chat -->
+            <div class="glass-panel ai-chat-box">
+                <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                    <h3 style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-robot" style="color: var(--color-purple);"></i> VELA AI Assistant
+                    </h3>
+                    <span class="badge" style="background: rgba(20, 184, 166, 0.2); color: var(--color-success);">Online</span>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message-bubble ai page-transition">
+                        <strong>VELA Support</strong><br>
+                        Hello {{ profile.name.split(' ')[0] if profile.name else 'User' }}, how can I help you today? I can diagnose system issues automatically.
+                    </div>
+                </div>
+                
+                <div class="input-bar">
+                    <button style="background:transparent; border:none; color: var(--text-secondary); cursor: pointer; padding: 0.5rem;"><i class="fas fa-paperclip"></i></button>
+                    <input type="text" id="support-input" placeholder="Type your issue...">
+                    <button class="primary-btn hover-lift ripple-glow" style="width: auto; padding: 0.5rem 1.5rem;" onclick="sendSupportMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+            <!-- Quick Actions & Diagnostics -->
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 style="margin-bottom: 1.5rem; color: var(--text-secondary);">⚡ Auto-Diagnostics</h3>
+                    <button class="action-button ripple-glow" onclick="fixItForMe()">
+                        <i class="fas fa-magic" style="color: var(--color-purple); font-size: 1.2rem;"></i>
+                        <div>
+                            <strong>Fix It For Me</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">AI scans system & auto-resolves</div>
+                        </div>
+                    </button>
+                    <button class="action-button ripple-glow">
+                        <i class="fas fa-bug" style="color: var(--color-warning); font-size: 1.2rem;"></i>
+                        <div>
+                            <strong>Report Bug</strong>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Send logs directly to dev team</div>
+                        </div>
+                    </button>
+                </div>
+                
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 style="margin-bottom: 1.5rem; color: var(--text-secondary);">📞 Contact Options</h3>
+                    <button class="action-button ripple-glow">
+                        <i class="fas fa-envelope" style="color: var(--color-info); font-size: 1.2rem;"></i> Email Support
+                    </button>
+                    <button class="action-button ripple-glow">
+                        <i class="fas fa-phone-alt" style="color: var(--color-success); font-size: 1.2rem;"></i> Request Callback
+                    </button>
+                </div>
+                
+                <div class="glass-panel" style="padding: 1.5rem;">
+                    <h3 style="margin-bottom: 1.5rem; color: var(--color-alert);">🔐 Security Mode</h3>
+                    <button class="action-button critical ripple-glow">
+                        <i class="fas fa-lock" style="font-size: 1.2rem;"></i>
+                        <div>
+                            <strong>Emergency Lock</strong>
+                            <div style="font-size: 0.8rem; opacity: 0.8;">Instantly revoke all access</div>
+                        </div>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function sendSupportMessage() {
+            const input = document.getElementById('support-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+            
+            const chat = document.getElementById('chat-messages');
+            
+            // User message
+            const uDiv = document.createElement('div');
+            uDiv.className = 'message-bubble user page-transition';
+            uDiv.innerText = msg;
+            chat.appendChild(uDiv);
+            
+            input.value = '';
+            chat.scrollTop = chat.scrollHeight;
+            
+            // AI Thinking
+            const tDiv = document.createElement('div');
+            tDiv.className = 'message-bubble ai ai-thinking page-transition';
+            tDiv.innerHTML = `<span></span><span></span><span></span>`;
+            chat.appendChild(tDiv);
+            chat.scrollTop = chat.scrollHeight;
+            
+            // Simulate AI Support Response
+            setTimeout(() => {
+                chat.removeChild(tDiv);
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'message-bubble ai page-transition';
+                aiDiv.innerHTML = `<strong>VELA Support</strong><br>I've run a quick diagnostic on your request. Let me escalate this to our human support team, or you can click "Fix It For Me" to allow me to attempt an automatic configuration reset.`;
+                chat.appendChild(aiDiv);
+                chat.scrollTop = chat.scrollHeight;
+            }, 2000);
+        }
+        
+        function fixItForMe() {
+            const chat = document.getElementById('chat-messages');
+            
+            // System message
+            const tDiv = document.createElement('div');
+            tDiv.className = 'message-bubble ai ai-thinking page-transition';
+            tDiv.innerHTML = `<span></span><span></span><span></span>`;
+            chat.appendChild(tDiv);
+            chat.scrollTop = chat.scrollHeight;
+            
+            setTimeout(() => {
+                chat.removeChild(tDiv);
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'message-bubble ai page-transition';
+                aiDiv.innerHTML = `<strong>VELA Support</strong><br><i class="fas fa-check-circle" style="color: var(--color-success);"></i> <strong>Auto-Resolution Complete</strong><br>I have scanned your system logs and cleared the cache anomalies. Your dashboard metrics should now sync perfectly.`;
+                chat.appendChild(aiDiv);
+                chat.scrollTop = chat.scrollHeight;
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELA - Enter Code</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .auth-form .input-group input {
+            width: 100%;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        .auth-form .input-group input:focus {
+            border-color: #60a5fa;
+            outline: none;
+            box-shadow: 0 0 15px rgba(96, 165, 250, 0.3);
+        }
+    </style>
+</head>
+<body class="auth-body">
+    <div class="auth-container glass-panel" style="max-width: 400px; text-align: center;">
+        <i class="fas fa-shield-alt" style="font-size: 3rem; color: #60a5fa; margin-bottom: 1rem;"></i>
+        <h1 class="logo-title" style="font-size: 1.8rem; margin-bottom: 0.5rem;">Enter Verification Code</h1>
+        <p class="subtitle" style="margin-bottom: 2rem; font-size: 0.9em;">Please check your device for the 6-digit access code we just sent.</p>
+        
+        {% if error %}
+            <div class="error-msg" style="color: #ef4444; margin-bottom: 1.5rem; font-weight: 500;">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST" action="{{ url_for('verify_code') }}" class="auth-form">
+            <div class="input-group">
+                <input type="text" name="code" placeholder="------" maxlength="6" required autocomplete="off">
+            </div>
+            <button type="submit" class="primary-btn" style="width: 100%; margin-top: 1.5rem; padding: 1rem;">Verify & Complete Registration</button>
+        </form>
+    </div>
+
+<!-- Google Translate Widget -->
+<div id='google_translate_element' style='display:none;'></div>
+<script type='text/javascript'>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+}
+</script>
+<script type='text/javascript' src='//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'></script>
+</body>
+
+</html>

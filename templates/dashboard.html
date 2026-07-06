@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELA - Mission Control</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* XP Bar Styles */
+        .xp-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            margin-top: 0.5rem;
+            height: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .xp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 20px;
+            transition: width 0.5s ease-out;
+        }
+        .level-badge {
+            background: #8b5cf6;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 0.5rem;
+        }
+        
+        /* Life Feed Styles */
+        .life-feed-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .feed-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #60a5fa;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+        .feed-item.alert { border-left-color: #f87171; }
+        .feed-item.success { border-left-color: #34d399; }
+        
+        /* Loading skeleton */
+        .skeleton {
+            background: rgba(255, 255, 255, 0.05);
+            height: 60px;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: var(--panel-bg);
+            border: 1px solid var(--color-alert);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            padding: 2.5rem;
+            max-width: 450px;
+            text-align: center;
+            animation: pageFadeSlide 0.4s ease-out;
+        }
+        
+        /* Floating Support Button */
+        .floating-support {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--color-purple), var(--color-info));
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.5);
+            z-index: 9000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .floating-support:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.7);
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    {% if needs_phone %}
+    <!-- Phone Verification Alert Modal -->
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--color-alert); margin-bottom: 1rem;"></i>
+            <h2 style="margin-bottom: 1rem;">Security Verification Required</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                You connected via Google/Apple, but we need a valid phone number to fully secure your VELA profile and enable 2FA alerts.
+            </p>
+            <form method="POST" action="{{ url_for('update_phone') }}">
+                <input type="text" name="phone_number" placeholder="+1 (555) 000-0000" required 
+                       style="width: 100%; padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: white; margin-bottom: 1.5rem; text-align: center; font-size: 1.1rem;">
+                <button type="submit" class="primary-btn hover-lift ripple-glow">Verify Number</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Sidebar -->
+    <nav class="sidebar glass-panel">
+        <div class="logo-area animate-pulse-glow"><h2>VELA</h2></div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('dashboard') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{{ url_for('schedule') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-calendar-alt"></i> Schedule</a></li>
+            <li><a href="{{ url_for('finance') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-wallet" style="color: var(--color-success)"></i> Finance</a></li>
+            <li><a href="{{ url_for('memory') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-brain" style="color: var(--color-info)"></i> Second Brain</a></li>
+            <li><a href="{{ url_for('health') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-heartbeat"></i> Health</a></li>
+            <li><a href="{{ url_for('automations') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-bolt"></i> Routines</a></li>
+            <li><a href="{{ url_for('gamification') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-trophy" style="color: var(--color-warning)"></i> Gamification</a></li>
+            <li><a href="{{ url_for('insights') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-chart-pie"></i> AI Insights</a></li>
+            <li><a href="{{ url_for('trust') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-shield-alt"></i> Security</a></li>
+            <li><a href="{{ url_for('settings') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+        <div class="user-profile animate-fade-in">
+            <div class="avatar">{{ profile.name[0].upper() if profile.name else 'U' }}</div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-weight: 500;">{{ profile.name }}</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-btn" style="margin-left: auto;"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div style="flex-grow: 1;">
+                <h1>Good Morning, {{ profile.name.split(' ')[0] if profile.name else 'User' }}!</h1>
+                <div style="margin-top: 0.5rem; max-width: 400px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85em; color: #a1a1aa;">
+                        <span>Level {{ profile.level }} <span class="level-badge">XP: {{ profile.xp }}</span></span>
+                        <span>{{ 500 - (profile.xp % 500) }} XP to next level</span>
+                    </div>
+                    <div class="xp-container">
+                        <div class="xp-bar" style="width: {{ (profile.xp % 500) / 5 }}%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="status-indicators" style="align-self: flex-start;">
+                <span class="badge success"><i class="fas fa-fire"></i> {{ profile.current_streak }} Day Streak</span>
+            </div>
+        </header>
+
+        <!-- Widgets Grid -->
+        <div class="dashboard-grid">
+            
+            <!-- THE LIFE FEED -->
+            <div class="widget glass-panel span-2">
+                <h3><i class="fas fa-stream"></i> The Life Feed</h3>
+                <div class="life-feed-container" id="life-feed">
+                    <div class="skeleton"></div>
+                    <div class="skeleton"></div>
+                </div>
+            </div>
+
+            <!-- Life Budget -->
+            <div class="widget glass-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3><i class="fas fa-chart-pie"></i> Life Budget</h3>
+                    <button id="link-button" class="badge" style="cursor: pointer; border: none; background: rgba(59, 130, 246, 0.3); color: white; transition: 0.3s;"><i class="fas fa-plus"></i> Connect Bank</button>
+                </div>
+        <!-- Life Feed (Scrollable Cards) -->
+        <h3 style="margin-bottom: 1rem;" class="animate-fade-in"><i class="fas fa-stream"></i> Life Feed</h3>
+        <div class="scroll-x-container animate-slide-right">
+            <div class="feed-card" style="border-left: 4px solid var(--color-alert);">
+                <div style="font-size: 2rem; color: var(--color-alert);"><i class="fas fa-calendar-times"></i></div>
+                <div>
+                    <strong style="color: var(--color-alert);">Meeting in 30 mins</strong>
+                    <div style="font-size: 0.85rem; color: #a1a1aa;">Design Sync (Zoom)</div>
+                </div>
+            </div>
+            
+            <div class="feed-card" style="border-left: 4px solid var(--color-warning);">
+                <div style="font-size: 2rem; color: var(--color-warning);"><i class="fas fa-wallet"></i></div>
+                <div>
+                    <strong style="color: var(--color-warning);">Budget Alert</strong>
+                    <div style="font-size: 0.85rem; color: #a1a1aa;">You're 15% over budget this week.</div>
+                </div>
+            </div>
+            
+            <div class="feed-card" style="border-left: 4px solid var(--color-success);">
+                <div style="font-size: 2rem; color: var(--color-success);"><i class="fas fa-check-circle"></i></div>
+                <div>
+                    <strong style="color: var(--color-success);">Task Completed</strong>
+                    <div style="font-size: 0.85rem; color: #a1a1aa;">Morning Routine (+50 XP)</div>
+                </div>
+            </div>
+
+            <div class="feed-card" style="border-left: 4px solid var(--color-info);">
+                <div style="font-size: 2rem; color: var(--color-info);"><i class="fas fa-envelope"></i></div>
+                <div>
+                    <strong style="color: var(--color-info);">Message needs reply</strong>
+                    <div style="font-size: 0.85rem; color: #a1a1aa;">Sarah: "Can we review the PR?"</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem;" class="animate-fade-in"><i class="fas fa-bolt"></i> Quick Actions</h3>
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;" class="animate-slide-up">
+            <button class="primary-btn ripple" onclick="sendLifeCommand('Fix my day. I am overwhelmed.')" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;"><i class="fas fa-tools"></i> Fix My Day</button>
+            <button class="primary-btn ripple" onclick="sendLifeCommand('Plan my week optimally.')" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); color: #6ee7b7;"><i class="fas fa-calendar-check"></i> Plan My Week</button>
+            <button class="primary-btn ripple" onclick="sendLifeCommand('Clean my inbox and draft replies.')" style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5); color: #93c5fd;"><i class="fas fa-envelope-open-text"></i> Clean Inbox</button>
+            <button class="primary-btn ripple" style="background: rgba(139, 92, 246, 0.2); border-color: rgba(139, 92, 246, 0.5); color: #c084fc;"><i class="fas fa-bullseye"></i> Focus Mode ON</button>
+            <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(0,0,0,0.3); padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                <span style="font-size: 0.9rem; color: #a1a1aa;"><i class="fas fa-robot"></i> Auto-Pilot</span>
+                <input type="checkbox" class="glass-toggle" id="autopilot-toggle" checked>
+            </div>
+        </div>
+
+        <!-- AI Chat Interface (V3 Style) -->
+        <div class="glass-panel chat-widget animate-slide-up" style="margin-bottom: 2rem; border-color: rgba(139, 92, 246, 0.3);">
+            <div class="chat-history" id="chat-history" style="height: 300px;">
+                <div class="message ai">
+                    <div class="bubble" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3);">
+                        <strong><i class="fas fa-robot" style="color: #c084fc;"></i> VELA</strong><br>
+                        Hello! I am VELA, your second brain. I can now speak and listen. Press the microphone to talk.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="unified-input-container">
+                <button class="unified-btn" title="Attach File"><i class="fas fa-paperclip"></i></button>
+                <input type="text" id="chat-input" placeholder="Ask anything... (e.g. 'Plan my week')">
+                <button class="unified-btn ripple" id="voice-btn" title="Voice Input" style="margin-right: 10px; color: var(--color-success);"><i class="fas fa-microphone"></i></button>
+                <button class="unified-btn ripple" id="send-btn" style="color: #c084fc;"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+        
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        // Web Speech API for Voice AI
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const synth = window.speechSynthesis;
+        let recognition;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            // Let it detect language automatically, or fallback to en-US. VELA adapts anyway.
+            
+            recognition.onstart = function() {
+                document.getElementById('voice-btn').classList.add('animate-pulse-red');
+                document.getElementById('chat-input').placeholder = "Listening...";
+            };
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('chat-input').value = transcript;
+                sendMessage(); // auto send
+            };
+            
+            recognition.onend = function() {
+                document.getElementById('voice-btn').classList.remove('animate-pulse-red');
+                document.getElementById('chat-input').placeholder = "Ask anything...";
+            };
+        }
+
+        document.getElementById('voice-btn').addEventListener('click', () => {
+            if (recognition) recognition.start();
+            else alert("Voice recognition not supported in this browser.");
+        });
+
+        function speakText(text) {
+            if (synth) {
+                // Strip emojis and html tags for speech
+                const cleanText = text.replace(/<[^>]*>?/gm, '').replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.rate = 1.1; // Slightly faster for AI feel
+                
+                // Map VELA languages to BCP 47 language tags for Speech API
+                const langMap = {
+                    'en': 'en-US', 'es': 'es-ES', 'fr': 'fr-FR', 'de': 'de-DE',
+                    'pt': 'pt-BR', 'ru': 'ru-RU', 'ar': 'ar-SA', 'hi': 'hi-IN',
+                    'zh-CN': 'zh-CN', 'ja': 'ja-JP', 'ko': 'ko-KR'
+                    // For Igbo, Hausa, Yoruba, browser TTS might not have native voices, so it will fallback
+                };
+                const userLang = '{{ profile.preferred_language }}';
+                if (langMap[userLang]) {
+                    utterance.lang = langMap[userLang];
+                    if (recognition) recognition.lang = langMap[userLang]; // Also set recognition language
+                }
+                
+                synth.speak(utterance);
+            }
+        }
+
+        // Chat Logic
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatHistory = document.getElementById('chat-history');
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            const userDiv = document.createElement('div');
+            userDiv.className = 'message user animate-fade-in';
+            userDiv.innerHTML = `<div class="bubble">${message}</div>`;
+            chatHistory.appendChild(userDiv);
+            
+            chatInput.value = '';
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Add loading skeleton
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message ai animate-fade-in';
+            loadingDiv.innerHTML = `<div class="bubble" style="background: transparent; padding: 0; width: 200px;"><div class="skeleton" style="height: 40px;"></div></div>`;
+            chatHistory.appendChild(loadingDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: message})
+                });
+                
+                const data = await response.json();
+                
+                // Remove loading
+                chatHistory.removeChild(loadingDiv);
+
+                // Add AI response (typing effect simulation)
+                const aiDiv = document.createElement('div');
+                aiDiv.className = 'message ai animate-slide-up';
+                let replyHtml = data.reply.replace(/\n/g, '<br>');
+                replyHtml = replyHtml.replace(/✔/g, '<span style="color: var(--color-success)"><i class="fas fa-check-circle"></i></span>');
+                
+                aiDiv.innerHTML = `<div class="bubble" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3);">
+                    <strong><i class="fas fa-robot" style="color: #c084fc;"></i> VELA</strong><br>
+                    ${replyHtml}
+                </div>`;
+                chatHistory.appendChild(aiDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                
+                // Speak the response
+                speakText(data.reply);
+
+            } catch (err) {
+                chatHistory.removeChild(loadingDiv);
+                const errDiv = document.createElement('div');
+                errDiv.className = 'message ai animate-fade-in animate-shake';
+                errDiv.innerHTML = `<div class="bubble" style="background: rgba(239, 68, 68, 0.2);"><i class="fas fa-exclamation-triangle"></i> Neural link interrupted.</div>`;
+                chatHistory.appendChild(errDiv);
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Life Feed API
+        document.addEventListener('DOMContentLoaded', async () => {
+            const lifeFeed = document.getElementById('life-feed');
+            try {
+                const response = await fetch('/api/life_feed');
+                const data = await response.json();
+                if (data.status === 'success') {
+                    lifeFeed.innerHTML = `
+                        <div class="feed-item" style="background: rgba(139, 92, 246, 0.15); border-left: 4px solid #8b5cf6; padding: 1.5rem; font-size: 1.1rem; line-height: 1.6;">
+                            <strong><i class="fas fa-sun" style="color: #fbbf24;"></i> VELA Morning Briefing</strong><br><br>
+                            ${data.briefing.replace(/\n/g, '<br>')}
+                        </div>
+                    `;
+                } else {
+                    lifeFeed.innerHTML = `<div class="feed-item alert">Could not load Life Feed.</div>`;
+                }
+            } catch (err) {
+                lifeFeed.innerHTML = `<div class="feed-item alert">Error connecting to VELA brain.</div>`;
+            }
+        });
+
+        function sendLifeCommand(text) {
+            const input = document.getElementById('chat-input');
+            const btn = document.getElementById('send-btn');
+            if (input && btn) {
+                input.value = text;
+                btn.click();
+            }
+        }
+    </script>
+
+    <!-- Floating Support -->
+    <a href="{{ url_for('support') }}" class="floating-support" title="Need Help?">
+        <i class="fas fa-comment-dots"></i>
+    </a>
+
+<!-- Google Translate Widget -->
+<div id='google_translate_element' style='display:none;'></div>
+<script type='text/javascript'>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+}
+
+// Global Toast System
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'glass-panel animate-slide-up';
+    toast.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; padding: 1rem 1.5rem; border-left: 4px solid var(--color-info); max-width: 300px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);';
+    toast.innerHTML = `<i class="fas fa-broadcast-tower" style="color: var(--color-info);"></i> <span>${message}</span>`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        toast.style.transition = 'all 0.4s ease';
+        setTimeout(() => document.body.removeChild(toast), 400);
+    }, 5000);
+}
+
+// User-level WebSocket Connection
+document.addEventListener("DOMContentLoaded", () => {
+    const socket = io();
+    socket.on('connect', () => console.log('Live connected to VELA network.'));
+    
+    socket.on('system_update', (data) => {
+        showToast(data.message);
+    });
+});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script type='text/javascript' src='//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'></script>
+</body>
+
+</html>

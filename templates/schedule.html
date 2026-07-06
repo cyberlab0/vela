@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELA - Schedule</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .event-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #60a5fa;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+        .event-time { color: #60a5fa; font-weight: bold; margin-bottom: 0.5rem; }
+        .event-title { font-size: 1.2em; font-weight: 500; margin-bottom: 0.2rem; }
+        .event-desc { color: #a1a1aa; font-size: 0.9em; }
+    </style>
+</head>
+<body class="dashboard-body">
+    
+    <!-- Sidebar -->
+    <nav class="sidebar glass-panel">
+        <div class="logo-area animate-pulse-glow"><h2>VELA</h2></div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('dashboard') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{{ url_for('schedule') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-calendar-alt"></i> Schedule</a></li>
+            <li><a href="{{ url_for('finance') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-wallet" style="color: var(--color-success)"></i> Finance</a></li>
+            <li><a href="{{ url_for('memory') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-brain" style="color: var(--color-info)"></i> Second Brain</a></li>
+            <li><a href="{{ url_for('health') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-heartbeat"></i> Health</a></li>
+            <li><a href="{{ url_for('automations') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-bolt"></i> Routines</a></li>
+            <li><a href="{{ url_for('gamification') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-trophy" style="color: var(--color-warning)"></i> Gamification</a></li>
+            <li><a href="{{ url_for('insights') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-chart-pie"></i> AI Insights</a></li>
+            <li><a href="{{ url_for('trust') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-shield-alt"></i> Security</a></li>
+            <li><a href="{{ url_for('settings') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+        <div class="user-profile animate-fade-in">
+            <div class="avatar">{{ profile.name[0].upper() if profile.name else 'U' }}</div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-weight: 500;">{{ profile.name }}</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-btn" style="margin-left: auto;"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar animate-slide-up" style="margin-bottom: 2rem;">
+            <h1><i class="fas fa-calendar-alt" style="color: var(--color-info);"></i> Smart Schedule</h1>
+            <p style="color: #a1a1aa;">AI-optimized time management with drag-and-snap precision.</p>
+        </header>
+
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;" class="animate-slide-up">
+            <button class="primary-btn ripple" style="background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.5); color: #93c5fd;"><i class="fas fa-magic"></i> Optimize My Day</button>
+            <button class="primary-btn ripple" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); color: #fca5a5;"><i class="fas fa-sync"></i> Auto-Reschedule</button>
+            <button class="primary-btn ripple" style="background: rgba(139, 92, 246, 0.2); border-color: rgba(139, 92, 246, 0.5); color: #c084fc;"><i class="fas fa-bullseye"></i> Focus Block</button>
+            <button class="primary-btn ripple" style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); color: #6ee7b7;"><i class="fas fa-coffee"></i> Smart Break</button>
+            <button class="primary-btn ripple"><i class="fas fa-robot"></i> AI Suggest Time</button>
+        </div>
+
+        <div class="glass-panel animate-slide-up" style="padding: 2rem; position: relative;">
+            <h3 style="margin-bottom: 2rem;"><i class="fas fa-clock"></i> Timeline (Today)</h3>
+            
+            <div style="position: relative; padding-left: 60px; border-left: 2px solid rgba(255,255,255,0.1); margin-left: 20px;">
+                <!-- 9 AM -->
+                <div style="position: absolute; left: -40px; top: 0; color: #a1a1aa;">9 AM</div>
+                <div class="feed-card animate-slide-right" style="margin-bottom: 2rem; border-left: 4px solid var(--color-info); transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); cursor: grab;">
+                    <div>
+                        <strong>Design Sync</strong>
+                        <div style="color: #a1a1aa; font-size: 0.85rem;"><i class="fas fa-video"></i> Zoom · 9:00 - 10:00 AM</div>
+                    </div>
+                </div>
+
+                <!-- 10 AM (Conflict) -->
+                <div style="position: absolute; left: -45px; top: 120px; color: #a1a1aa;">10 AM</div>
+                <div class="feed-card animate-shake" style="margin-bottom: 2rem; border-left: 4px solid var(--color-alert); background: rgba(239, 68, 68, 0.1);">
+                    <div>
+                        <strong style="color: var(--color-alert);">⚠️ Double Booked: Investor Call & Team Sync</strong>
+                        <div style="color: #a1a1aa; font-size: 0.85rem;"><i class="fas fa-exclamation-triangle"></i> Conflict detected. Auto-reschedule?</div>
+                    </div>
+                    <button class="primary-btn ripple" style="margin-left: auto; background: rgba(239, 68, 68, 0.5); border: none;"><i class="fas fa-magic"></i> Fix</button>
+                </div>
+
+                <!-- 12 PM (AI Suggestion) -->
+                <div style="position: absolute; left: -45px; top: 240px; color: #a1a1aa;">12 PM</div>
+                <div class="feed-card animate-fade-in animate-pulse-glow" style="margin-bottom: 2rem; border-left: 4px dashed var(--color-success); background: rgba(16, 185, 129, 0.05);">
+                    <div>
+                        <strong style="color: var(--color-success);">✨ AI Suggested: Smart Break</strong>
+                        <div style="color: #a1a1aa; font-size: 0.85rem;">You usually get tired around 1 PM. Take 30 mins now.</div>
+                    </div>
+                    <button class="primary-btn ripple" style="margin-left: auto; background: var(--color-success); border: none;"><i class="fas fa-check"></i> Accept</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+            <!-- Left: Event List -->
+            <div class="glass-panel">
+                <h3 style="margin-bottom: 1.5rem;">Upcoming Events</h3>
+                {% for e in events %}
+                    <div class="event-card">
+                        <div class="event-time"><i class="far fa-clock"></i> {{ e.date.strftime('%b %d, %Y') }} @ {{ e.time.strftime('%I:%M %p') }}</div>
+                        <div class="event-title">{{ e.title }}</div>
+                        <div class="event-desc">{{ e.description }}</div>
+                    </div>
+                {% else %}
+                    <p style="color: #a1a1aa; font-style: italic;">No upcoming events scheduled.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Right: Add Event Form -->
+            <div class="glass-panel">
+                <h3 style="margin-bottom: 1.5rem;">Add New Event</h3>
+                <form method="POST" action="{{ url_for('schedule') }}" class="auth-form">
+                    <div class="input-group">
+                        <label>Event Title</label>
+                        <input type="text" name="title" required placeholder="e.g. Board Meeting">
+                    </div>
+                    <div class="input-group">
+                        <label>Date</label>
+                        <input type="date" name="date" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Time</label>
+                        <input type="time" name="time" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Description</label>
+                        <input type="text" name="description" placeholder="e.g. Discuss Q3 targets">
+                    </div>
+                    <button type="submit" class="primary-btn" style="width: 100%; margin-top: 1rem;"><i class="fas fa-plus"></i> Add Event</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+
+<!-- Google Translate Widget -->
+<div id='google_translate_element' style='display:none;'></div>
+<script type='text/javascript'>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+}
+</script>
+<script type='text/javascript' src='//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'></script>
+</body>
+
+</html>

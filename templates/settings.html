@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELA - Settings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .settings-container {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+        }
+        
+        .auth-form .input-group input {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+        .auth-form .input-group input:focus {
+            border-color: #60a5fa;
+            outline: none;
+            box-shadow: 0 0 10px rgba(96, 165, 250, 0.2);
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    
+    <nav class="sidebar">
+        <h2 class="logo-title">VELA</h2>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('dashboard') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="{{ url_for('schedule') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-calendar-alt"></i> Schedule</a></li>
+            <li><i class="fas fa-wallet"></i> Life Budget</li>
+            <li><a href="{{ url_for('health') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-heartbeat"></i> Health</a></li>
+            <li><a href="{{ url_for('automations') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-bolt"></i> Automations</a></li>
+            <li class="active"><a href="{{ url_for('settings') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+        <div class="user-profile">
+            {% if profile.profile_image and profile.profile_image != 'default.png' %}
+                <img src="{{ url_for('static', filename='uploads/' + profile.profile_image) }}" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+            {% else %}
+                <div class="avatar">{{ profile.name[0].upper() if profile.name else 'U' }}</div>
+            {% endif %}
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-weight: 500;">{{ profile.name }}</span>
+                <span style="font-size: 0.75em; color: #a1a1aa;">{{ profile.country }}</span>
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-btn" style="margin-left: auto;"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar animate-slide-up" style="margin-bottom: 2rem;">
+            <h1><i class="fas fa-cog" style="color: #94a3b8;"></i> System Preferences</h1>
+            <p style="color: #a1a1aa;">Configure your digital twin's behavior, privacy, and connections.</p>
+        </header>
+        
+        <div class="settings-container animate-slide-up" style="max-width: 900px; padding: 0;">
+            
+            <div style="display: flex;">
+                <!-- Settings Sidebar -->
+                <div style="width: 250px; background: rgba(0,0,0,0.2); border-right: 1px solid rgba(255,255,255,0.05); padding: 2rem;">
+                    <ul style="list-style: none; padding: 0; margin: 0; line-height: 2.5;">
+                        <li style="color: white; font-weight: bold;"><i class="fas fa-user" style="color: #60a5fa; width: 20px;"></i> Account</li>
+                        <li><i class="fas fa-robot" style="color: #c084fc; width: 20px;"></i> AI Behavior</li>
+                        <li><i class="fas fa-shield-alt" style="color: #34d399; width: 20px;"></i> Privacy</li>
+                        <li><i class="fas fa-bell" style="color: #fbbf24; width: 20px;"></i> Notifications</li>
+                        <li><i class="fas fa-plug" style="color: #f87171; width: 20px;"></i> Integrations</li>
+                        <li><i class="fas fa-paint-brush" style="color: #ec4899; width: 20px;"></i> Appearance</li>
+                        <li><i class="fas fa-terminal" style="color: #a1a1aa; width: 20px;"></i> Advanced</li>
+                    </ul>
+                </div>
+                
+                <!-- Settings Content -->
+                <div style="flex-grow: 1; padding: 2rem;">
+                    
+                    {% if message %}
+                    <div class="feed-card animate-shake" style="background: rgba(52, 211, 153, 0.2); color: #34d399; border-left: 4px solid #34d399; margin-bottom: 2rem;">
+                        {{ message }}
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" action="{{ url_for('settings') }}" class="auth-form">
+                        
+                        <!-- Account -->
+                        <h3 style="margin-bottom: 1.5rem; color: #60a5fa;"><i class="fas fa-user"></i> Account Profile</h3>
+                        <div class="input-group">
+                            <label>Name</label>
+                            <input type="text" name="name" value="{{ profile.name if profile.name else '' }}">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="input-group">
+                                <label>Email / Phone</label>
+                                <input type="text" placeholder="alex@vela.ai">
+                            </div>
+                            <div class="input-group">
+                                <label>Language</label>
+                                <select name="preferred_language" style="width: 100%; padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-family: inherit;">
+                                    <option value="en" {% if profile.preferred_language == 'en' %}selected{% endif %}>English</option>
+                                    <option value="es" {% if profile.preferred_language == 'es' %}selected{% endif %}>Spanish</option>
+                                    <option value="fr" {% if profile.preferred_language == 'fr' %}selected{% endif %}>French</option>
+                                    <option value="de" {% if profile.preferred_language == 'de' %}selected{% endif %}>German</option>
+                                    <option value="pt" {% if profile.preferred_language == 'pt' %}selected{% endif %}>Portuguese</option>
+                                    <option value="ru" {% if profile.preferred_language == 'ru' %}selected{% endif %}>Russian</option>
+                                    <option value="ar" {% if profile.preferred_language == 'ar' %}selected{% endif %}>Arabic</option>
+                                    <option value="hi" {% if profile.preferred_language == 'hi' %}selected{% endif %}>Hindi</option>
+                                    <option value="zh-CN" {% if profile.preferred_language == 'zh-CN' %}selected{% endif %}>Chinese (Simplified)</option>
+                                    <option value="ja" {% if profile.preferred_language == 'ja' %}selected{% endif %}>Japanese</option>
+                                    <option value="ko" {% if profile.preferred_language == 'ko' %}selected{% endif %}>Korean</option>
+                                    <option value="ig" {% if profile.preferred_language == 'ig' %}selected{% endif %}>Igbo</option>
+                                    <option value="ha" {% if profile.preferred_language == 'ha' %}selected{% endif %}>Hausa</option>
+                                    <option value="yo" {% if profile.preferred_language == 'yo' %}selected{% endif %}>Yoruba</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr style="border-color: rgba(255,255,255,0.05); margin: 2rem 0;">
+
+                        <!-- AI Behavior -->
+                        <h3 style="margin-bottom: 1.5rem; color: #c084fc;"><i class="fas fa-robot"></i> AI Behavior</h3>
+                        <div class="input-group">
+                            <label>Personality</label>
+                            <select name="ai_personality" style="width: 100%; padding: 1rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white; font-family: inherit;">
+                                <option value="Professional Assistant" {% if profile.ai_personality == 'Professional Assistant' %}selected{% endif %}>Professional (Concise)</option>
+                                <option value="Friendly Coach" {% if profile.ai_personality == 'Friendly Coach' %}selected{% endif %}>Coach (Encouraging)</option>
+                                <option value="Strict Mentor" {% if profile.ai_personality == 'Strict Mentor' %}selected{% endif %}>Mentor (Direct)</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <div>
+                                <strong>Autonomy Level</strong>
+                                <div style="font-size: 0.85rem; color: #a1a1aa;">Manual / Assisted / Auto-Pilot</div>
+                            </div>
+                            <input type="range" min="1" max="3" value="3" style="width: 100px;">
+                        </div>
+
+                        <hr style="border-color: rgba(255,255,255,0.05); margin: 2rem 0;">
+
+                        <!-- Privacy -->
+                        <h3 style="margin-bottom: 1.5rem; color: #34d399;"><i class="fas fa-shield-alt"></i> Privacy</h3>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
+                            <span>Allow Cloud Sync</span>
+                            <input type="checkbox" class="glass-toggle" checked>
+                        </div>
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" class="primary-btn ripple" style="background: transparent; border: 1px solid #34d399; color: #34d399;"><i class="fas fa-download"></i> Export Data</button>
+                            <button type="button" class="primary-btn ripple" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: #fca5a5;"><i class="fas fa-trash"></i> Delete Data</button>
+                        </div>
+
+                        <hr style="border-color: rgba(255,255,255,0.05); margin: 2rem 0;">
+
+                        <!-- Notifications & Integrations Toggles -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                            <div>
+                                <h3 style="margin-bottom: 1.5rem; color: #fbbf24;"><i class="fas fa-bell"></i> Alerts</h3>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
+                                    <span>Smart Alerts</span>
+                                    <input type="checkbox" class="glass-toggle" checked>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
+                                    <span>Quiet Hours</span>
+                                    <input type="checkbox" class="glass-toggle">
+                                </div>
+                            </div>
+                            <div>
+                                <h3 style="margin-bottom: 1.5rem; color: #f87171;"><i class="fas fa-plug"></i> Connected</h3>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
+                                    <span>Gmail</span>
+                                    <input type="checkbox" class="glass-toggle" checked>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
+                                    <span>Plaid (Bank)</span>
+                                    <input type="checkbox" class="glass-toggle" checked>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr style="border-color: rgba(255,255,255,0.05); margin: 2rem 0;">
+
+                        <!-- Advanced -->
+                        <h3 style="margin-bottom: 1.5rem; color: #a1a1aa;"><i class="fas fa-terminal"></i> Advanced (Developer)</h3>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
+                            <span>Developer Mode</span>
+                            <input type="checkbox" class="glass-toggle">
+                        </div>
+                        <div class="input-group">
+                            <label>OpenAI API Key (Custom Model)</label>
+                            <input type="password" placeholder="sk-...">
+                        </div>
+
+                        <button type="submit" class="primary-btn ripple" style="width: 100%; margin-top: 2rem; padding: 1rem; font-size: 1.1rem;"><i class="fas fa-save"></i> Save All Preferences</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<!-- Google Translate Widget -->
+<div id='google_translate_element' style='display:none;'></div>
+<script type='text/javascript'>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+}
+</script>
+<script type='text/javascript' src='//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'></script>
+</body>
+
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELA - Secure Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        #particles-js {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+        }
+        .auth-form .input-group input {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        .auth-form .input-group input:focus {
+            border-color: var(--color-info);
+            outline: none;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+        }
+        
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(255,255,255,0.05);
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 0.8rem;
+            transition: all 0.3s;
+        }
+        .social-btn:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .divider:not(:empty)::before { margin-right: .25em; }
+        .divider:not(:empty)::after { margin-left: .25em; }
+        
+        /* Boot Sequence Overlay */
+        #boot-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        #boot-overlay.active {
+            opacity: 1; pointer-events: all;
+        }
+    </style>
+</head>
+<body class="auth-body">
+    <div id="particles-js"></div>
+    
+    <!-- AI Boot Sequence Overlay -->
+    <div id="boot-overlay">
+        <h2 style="font-size: 2.5rem; background: linear-gradient(to right, #3B82F6, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2rem;">VELA SYSTEM</h2>
+        <div class="ai-thinking" style="margin-bottom: 2rem;">
+            <span></span><span></span><span></span>
+        </div>
+        <h3 id="boot-text" style="color: var(--text-primary); font-weight: 400; font-size: 1.5rem;">Authenticating...</h3>
+    </div>
+
+    <div class="auth-container glass-panel page-transition" style="max-width: 450px;">
+        <div class="logo-container animate-pulse-glow">
+            <h1 class="vela-logo-text" style="font-size: 3.5rem; text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);">VELA</h1>
+        </div>
+        <h2 style="margin-bottom: 0.2rem;">Welcome Back</h2>
+        <p class="subtitle">Virtual Executive Life Assistant</p>
+        
+        {% if error %}
+            <div class="alert error" style="background: rgba(239, 68, 68, 0.2); border-left: 4px solid #ef4444; padding: 1rem; text-align: left; margin-bottom: 1rem;">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('login') }}" class="auth-form" id="loginForm">
+            <div class="input-group">
+                <input type="email" name="email" id="emailInput" placeholder="Email Address" required>
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="primary-btn hover-lift ripple-glow">Enter Access Code</button>
+        </form>
+        
+        <div class="divider">OR</div>
+        
+        <form method="POST" action="{{ url_for('login') }}" id="googleForm">
+            <!-- Simulated Google Auth - Submits with a test account flag -->
+            <input type="hidden" name="email" value="google_auth@vela.io">
+            <input type="hidden" name="password" value="google_mock">
+            <input type="hidden" name="is_oauth" value="true">
+            <button type="button" onclick="runBootSequence('googleForm', 'Google User')" class="social-btn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" alt="Google">
+                Continue with Google
+            </button>
+        </form>
+        
+        <form method="POST" action="{{ url_for('login') }}" id="appleForm">
+            <!-- Simulated Apple Auth -->
+            <input type="hidden" name="email" value="apple_auth@vela.io">
+            <input type="hidden" name="password" value="apple_mock">
+            <input type="hidden" name="is_oauth" value="true">
+            <button type="button" onclick="runBootSequence('appleForm', 'Apple User')" class="social-btn">
+                <i class="fab fa-apple" style="font-size: 1.2rem;"></i>
+                Continue with Apple
+            </button>
+        </form>
+
+        <p style="margin-top: 1.5rem; color: #a1a1aa;">Need an account? <a href="{{ url_for('register') }}" style="color: var(--color-info); text-decoration: none;">Create Account</a></p>
+    </div>
+
+    <!-- Particles.js -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS.load('particles-js', "{{ url_for('static', filename='particles.json') }}", function() {
+            console.log('particles.js loaded');
+        });
+        
+        // AI Boot Sequence Interceptor
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('emailInput').value.split('@')[0];
+            const name = email.charAt(0).toUpperCase() + email.slice(1);
+            runBootSequence('loginForm', name);
+        });
+        
+        function runBootSequence(formId, userName) {
+            const overlay = document.getElementById('boot-overlay');
+            const bootText = document.getElementById('boot-text');
+            overlay.classList.add('active');
+            
+            setTimeout(() => {
+                bootText.innerText = `Welcome back, ${userName}. Preparing your day...`;
+            }, 1000);
+            
+            setTimeout(() => {
+                bootText.innerText = "Syncing neural modules...";
+            }, 2500);
+            
+            setTimeout(() => {
+                document.getElementById(formId).submit();
+            }, 3500);
+        }
+    </script>
+</body>
+</html>

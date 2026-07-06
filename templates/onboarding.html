@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELA - Initializing Brain</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="onboarding-body">
+    <div class="glass-panel onboarding-panel">
+        <h2>Initializing Your AI Brain</h2>
+        <p>To serve you better, VELA needs to understand your context.</p>
+
+        <form action="{{ url_for('onboarding') }}" method="POST">
+            <div class="input-group">
+                <label>What best describes your current stage?</label>
+                <select name="age_group" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="student">Student</option>
+                    <option value="young_professional">Young Professional</option>
+                    <option value="established_business">Business Owner / Exec</option>
+                    <option value="retired">Retired</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>What is your primary occupation?</label>
+                <input type="text" name="occupation" placeholder="e.g. Software Engineer, Medical Student..." required>
+            </div>
+
+            <div class="input-group">
+                <label>What are your top priorities right now?</label>
+                <textarea name="goals" placeholder="e.g. Focus on studies, grow my startup, work-life balance..." required></textarea>
+            </div>
+
+            <button type="submit" class="primary-btn">Initialize VELA</button>
+        </form>
+    </div>
+
+<!-- Google Translate Widget -->
+<div id='google_translate_element' style='display:none;'></div>
+<script type='text/javascript'>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+}
+</script>
+<script type='text/javascript' src='//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'></script>
+</body>
+
+</html>

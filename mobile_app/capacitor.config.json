@@ -1,0 +1,10 @@
+{
+  "appId": "com.vela.app",
+  "appName": "VELA",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://vela-ai.production.com",
+    "cleartext": true
+  }
+}

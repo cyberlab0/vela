@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - User Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .log-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #a1a1aa;
+        }
+        .log-entry { margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; }
+        .log-time { color: #60a5fa; }
+        .log-action { color: white; font-weight: bold; }
+        .log-ip { color: #34d399; }
+    </style>
+</head>
+<body class="dashboard-body">
+    <div class="sidebar">
+        <h2 class="logo-title" style="color: #ef4444;"><i class="fas fa-shield-alt"></i> VELA Admin</h2>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('admin_dashboard') }}" style="color: inherit; text-decoration: none;"><i class="fas fa-arrow-left"></i> Back to Users</a></li>
+        </ul>
+    </div>
+    
+    <div class="main-content" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        
+        <!-- left column -->
+        <div>
+            <div class="glass-panel" style="margin-bottom: 2rem;">
+                <h2 style="margin-bottom: 1rem;">Profile #{{ u.profile_id }}</h2>
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                    {% if 'avatar' in u.profile_image %}
+                        <img src="{{ url_for('static', filename=u.profile_image) }}" style="width: 80px; height: 80px; border-radius: 50%;">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='uploads/' + u.profile_image) }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+                    {% endif %}
+                    <div>
+                        <h3 style="font-size: 1.5rem; margin: 0;">{{ u.name }}</h3>
+                        <p style="color: #a1a1aa; margin: 0;">{{ u.email }} | {{ u.phone_number }}</p>
+                    </div>
+                </div>
+                
+                <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+                
+                <p><strong>Country:</strong> {{ u.country }}</p>
+                <p><strong>Occupation:</strong> {{ u.occupation }}</p>
+                <p><strong>Goals:</strong> {{ u.goals }}</p>
+                
+                <div style="margin-top: 2rem;">
+                    <form method="POST" action="{{ url_for('admin_ban_user', uid=u.id) }}">
+                        {% if u.is_banned %}
+                            <button type="submit" class="primary-btn" style="background: #34d399; color: #000; width: 100%;"><i class="fas fa-unlock"></i> Unban User</button>
+                        {% else %}
+                            <button type="submit" class="primary-btn" style="background: #ef4444; color: white; width: 100%;"><i class="fas fa-ban"></i> Ban User (Lockout)</button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+            
+            <div class="glass-panel">
+                <h3 style="margin-bottom: 1rem;"><i class="fab fa-whatsapp" style="color: #34d399;"></i> WhatsApp Transcripts</h3>
+                <div class="log-box">
+                    {% for m in msgs %}
+                        <div class="log-entry">
+                            <span class="log-time">[{{ m.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}]</span> 
+                            <span style="color: {{ '#fbbf24' if m.role == 'user' else '#60a5fa' }};">{{ m.role|upper }}:</span> 
+                            {{ m.content }}
+                        </div>
+                    {% else %}
+                        No WhatsApp history.
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- right column -->
+        <div>
+            <div class="glass-panel">
+                <h3 style="margin-bottom: 1rem;"><i class="fas fa-search-location" style="color: #f87171;"></i> Security & Activity Audit Log</h3>
+                <div class="log-box" style="max-height: 800px;">
+                    {% for l in logs %}
+                        <div class="log-entry">
+                            <span class="log-time">[{{ l.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}]</span><br>
+                            <span class="log-action">{{ l.action }}</span><br>
+                            IP: <span class="log-ip">{{ l.ip_address }}</span><br>
+                            Location: {{ l.location_data }}
+                        </div>
+                    {% else %}
+                        No logs recorded.
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+<!-- Google Translate Widget -->
+<div id='google_translate_element' style='display:none;'></div>
+<script type='text/javascript'>
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({pageLanguage: 'en', autoDisplay: false}, 'google_translate_element');
+}
+</script>
+<script type='text/javascript' src='//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'></script>
+</body>
+
+</html>
