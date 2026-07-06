@@ -51,7 +51,10 @@ limiter = Limiter(
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-fernet = Fernet(os.getenv("FERNET_KEY").encode())
+fernet_key_env = os.getenv("FERNET_KEY")
+if not fernet_key_env:
+    fernet_key_env = Fernet.generate_key().decode()
+fernet = Fernet(fernet_key_env.encode())
 
 # --- DATABASE MODELS ---
 
