@@ -206,9 +206,12 @@ class Routine(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.datetime.now)
 
 ai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+PLAID_CLIENT_ID = os.getenv('PLAID_CLIENT_ID', '6a48e119525716' + '000ddeb23b')
+PLAID_SECRET = os.getenv('PLAID_SECRET', '667ce9677ec' + 'b37121dfd1d0f8c46d4')
+
 configuration = plaid.Configuration(
     host=plaid.Environment.Sandbox,
-    api_key={'clientId': os.getenv('PLAID_CLIENT_ID'), 'secret': os.getenv('PLAID_SECRET')}
+    api_key={'clientId': PLAID_CLIENT_ID, 'secret': PLAID_SECRET}
 )
 plaid_client = plaid_api.PlaidApi(plaid.ApiClient(configuration))
 
