@@ -280,6 +280,17 @@ def get_ip_location(ip):
     except: pass
     return "Unknown Location"
 
+def check_vpn(ip):
+    if ip in ['127.0.0.1', '::1', 'localhost']: return False
+    try:
+        res = requests.get(f"https://ipwho.is/{ip}", timeout=2).json()
+        if res.get('success'):
+            sec = res.get('security', {})
+            if sec.get('vpn') or sec.get('proxy') or sec.get('tor'):
+                return True
+    except: pass
+    return False
+
 def generate_profile_id():
     while True:
         pid = str(random.randint(100000, 999999))
@@ -442,6 +453,9 @@ def login():
                 # Emit live event to admins
                 socketio.emit('admin_alert', {'message': f'User logged in: {user.email}'}, room='admin_room')
                 
+                if check_vpn(ip):
+                    session['vpn_alert'] = "High Risk Session detected: VPN/Proxy usage identified. Please verify your identity."
+
                 if user.is_admin:
                     resp = make_response(redirect(url_for('admin_dashboard')))
                 else:
@@ -481,7 +495,8 @@ def onboarding():
 def dashboard():
     user = db.session.get(User, session['user_id'])
     needs_phone = user.phone_number is None or user.phone_number.strip() == ""
-    return render_template('dashboard.html', profile=user, needs_phone=needs_phone)
+    vpn_alert = session.pop('vpn_alert', None)
+    return render_template('dashboard.html', profile=user, needs_phone=needs_phone, vpn_alert=vpn_alert)
 
 @app.route('/admin/lockdown', methods=['POST'])
 @admin_required
@@ -887,6 +902,21 @@ add_calendar_event_tool = types.Tool(
                     "time": types.Schema(type=types.Type.STRING, description="HH:MM (24-hour)"),
                 },
                 required=["title", "description", "date", "time"]
+)
+    ]
+)
+
+change_language_tool = types.Tool(
+    function_declarations=[
+        types.FunctionDeclaration(
+            name="change_language",
+            description="Changes the user's preferred language setting in their profile. Use this if the user asks you to change the language you speak in.",
+            parameters=types.Schema(
+                type=types.Type.OBJECT,
+                properties={
+                    "language_code": types.Schema(type=types.Type.STRING, description="The 2-letter ISO language code (e.g., 'en', 'es', 'fr', 'de')."),
+                },
+                required=["language_code"]
             )
         )
     ]
@@ -917,6 +947,14 @@ def process_gemini_chat(user, contents, config):
                             result = "Successfully added to calendar."
                         except Exception as e:
                             result = f"Failed to add: {str(e)}"
+                            
+                elif fc.name == "change_language":
+                    try:
+                        user.preferred_language = fc.args['language_code']
+                        db.session.commit()
+                        result = f"Language successfully changed to {fc.args['language_code']}."
+                    except Exception as e:
+                        result = f"Failed to change language: {str(e)}"
                     
                     contents.append(types.Content(role='model', parts=[types.Part.from_function_call(name=fc.name, args=args)]))
                     contents.append(types.Content(role='user', parts=[types.Part.from_function_response(name=fc.name, response={"result": result})]))
@@ -952,7 +990,7 @@ def api_chat():
         
     contents.append(types.Content(role='user', parts=[types.Part.from_text(text=incoming_msg)]))
     
-    config = types.GenerateContentConfig(system_instruction=system_prompt, tools=[{'google_search': {}}, add_calendar_event_tool])
+    config = types.GenerateContentConfig(system_instruction=system_prompt, tools=[{'google_search': {}}, add_calendar_event_tool, change_language_tool])
     reply_text = process_gemini_chat(user, contents, config)
     
     db.session.add(Message(user_id=user.id, role='user', content=incoming_msg))
