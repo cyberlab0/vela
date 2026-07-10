@@ -120,16 +120,12 @@
         
         <div class="divider">OR</div>
         
-        <form method="POST" action="{{ url_for('login') }}" id="googleForm">
-            <!-- Simulated Google Auth - Submits with a test account flag -->
-            <input type="hidden" name="email" value="google_auth@vela.io">
-            <input type="hidden" name="password" value="google_mock">
-            <input type="hidden" name="is_oauth" value="true">
-            <button type="button" onclick="runBootSequence('googleForm', 'Google User')" class="social-btn">
+        <a href="{{ url_for('google_login') }}" style="text-decoration: none;">
+            <button type="button" class="social-btn">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" alt="Google">
                 Continue with Google
             </button>
-        </form>
+        </a>
         
         <form method="POST" action="{{ url_for('login') }}" id="appleForm">
             <!-- Simulated Apple Auth -->
