@@ -902,7 +902,8 @@ add_calendar_event_tool = types.Tool(
                     "time": types.Schema(type=types.Type.STRING, description="HH:MM (24-hour)"),
                 },
                 required=["title", "description", "date", "time"]
-)
+            )
+        )
     ]
 )
 
