@@ -98,6 +98,9 @@ class User(db.Model):
     
     # Phase 11 Multi-Language
     preferred_language = db.Column(db.String(20), default='en')
+    
+    # Phase 3 Autonomous Communication
+    read_notifications_aloud = db.Column(db.Boolean, default=True)
 
 class ActivityLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -211,15 +214,19 @@ def life_planner_engine():
                         evt_dt = datetime.datetime.combine(today, evt.time)
                         delta = (evt_dt - now_dt).total_seconds() / 60.0
                         
+                        
+                        user_obj = db.session.get(User, evt.user_id)
+                        play_audio = user_obj.read_notifications_aloud if user_obj else True
+                        
                         if 59 <= delta < 60:
                             msg = f"Hey, your event '{evt.title}' starts in 1 hour."
-                            socketio.emit('life_alert', {'message': msg, 'type': 'alert'}, room=f'user_{evt.user_id}')
+                            socketio.emit('life_alert', {'message': msg, 'type': 'alert', 'play_audio': play_audio}, room=f'user_{evt.user_id}')
                         elif 14 <= delta < 15:
                             msg = f"Get ready! '{evt.title}' starts in 15 minutes."
-                            socketio.emit('life_alert', {'message': msg, 'type': 'warning'}, room=f'user_{evt.user_id}')
+                            socketio.emit('life_alert', {'message': msg, 'type': 'warning', 'play_audio': play_audio}, room=f'user_{evt.user_id}')
                         elif 0 <= delta < 1:
                             msg = f"It's time to begin: '{evt.title}'!"
-                            socketio.emit('life_alert', {'message': msg, 'type': 'success'}, room=f'user_{evt.user_id}')
+                            socketio.emit('life_alert', {'message': msg, 'type': 'success', 'play_audio': play_audio}, room=f'user_{evt.user_id}')
             except Exception as e:
                 pass # Prevent DB session errors from crashing thread
 
@@ -570,6 +577,11 @@ def settings():
             user.preferred_language = preferred_language
             updated = True
             
+        read_aloud = 'read_notifications_aloud' in request.form
+        if read_aloud != user.read_notifications_aloud:
+            user.read_notifications_aloud = read_aloud
+            updated = True
+            
         if current_password and new_password:
             if check_password_hash(user.password_hash, current_password):
                 user.password_hash = generate_password_hash(new_password)
@@ -843,6 +855,8 @@ def build_ai_prompt(user_id):
 
     planner_clause = "PROACTIVE PLANNER ENGINE: If the user says 'Plan my week', 'Plan my day', or anything similar, DO NOT just give ideas. You must actively ask what they want to do on specific days, structure it, and write it to the calendar using the add_calendar_event tool. Once you use the tool to add an event, proudly tell the user you've scheduled it."
 
+    comm_clause = "COMMUNICATION AGENT (STRICT): If the user asks you to send a message or make a call to a contact (e.g., 'tell Mr Jack I will be late', 'call Thomas'), FIRST draft the message/call-script, present it to the user, and explicitly ask: 'Is that okay by you? If yes, let me know so I can send it.' DO NOT use the send_communication tool until the user replies with 'yes' or explicitly confirms. Once confirmed, use the send_communication tool."
+
     system_prompt = f"""You are VELA, an elite Virtual Executive Life Assistant.
 Current System Date & Time: {now}.
 User Profile: ID #{user.profile_id}, Name: {user.name} from {user.country}. {user.age_group} {user.occupation}. Goals: {user.goals}. Preferred Language: {user.preferred_language}.
@@ -860,6 +874,7 @@ CRITICAL ACCURACY INSTRUCTIONS: You MUST use your Google Search tool to verify A
 
 {accountability_clause}
 {planner_clause}
+{comm_clause}
 {smart_reply_clause}
 {language_clause}
 """
@@ -958,6 +973,24 @@ change_language_tool = types.Tool(
     ]
 )
 
+send_communication_tool = types.Tool(
+    function_declarations=[
+        types.FunctionDeclaration(
+            name="send_communication",
+            description="Sends an SMS, WhatsApp message, or phone call on behalf of the user to a contact.",
+            parameters=types.Schema(
+                type=types.Type.OBJECT,
+                properties={
+                    "platform": types.Schema(type=types.Type.STRING, description="Must be one of: 'sms', 'whatsapp', 'call'"),
+                    "contact_name": types.Schema(type=types.Type.STRING, description="The name of the contact."),
+                    "message": types.Schema(type=types.Type.STRING, description="The message content or voice script to send."),
+                },
+                required=["platform", "contact_name", "message"]
+            )
+        )
+    ]
+)
+
 def process_gemini_chat(user, contents, config):
     try:
         response = ai_client.models.generate_content(model='gemini-2.5-flash', contents=contents, config=config)
@@ -991,6 +1024,21 @@ def process_gemini_chat(user, contents, config):
                         result = f"Language successfully changed to {fc.args['language_code']}."
                     except Exception as e:
                         result = f"Failed to change language: {str(e)}"
+                        
+                elif fc.name == "send_communication":
+                    try:
+                        args = fc.args
+                        platform = args['platform'].upper()
+                        # Simulate sending communication
+                        log_msg = f"Communication Sent [{platform}] to {args['contact_name']}: '{args['message']}'"
+                        ip = get_client_ip()
+                        loc = get_ip_location(ip)
+                        log = ActivityLog(user_id=user.id, action=log_msg, ip_address=ip, location_data=loc)
+                        db.session.add(log)
+                        db.session.commit()
+                        result = f"Successfully sent {platform} message to {args['contact_name']}."
+                    except Exception as e:
+                        result = f"Failed to send communication: {str(e)}"
                     
                     contents.append(types.Content(role='model', parts=[types.Part.from_function_call(name=fc.name, args=args)]))
                     contents.append(types.Content(role='user', parts=[types.Part.from_function_response(name=fc.name, response={"result": result})]))
@@ -1026,7 +1074,7 @@ def api_chat():
         
     contents.append(types.Content(role='user', parts=[types.Part.from_text(text=incoming_msg)]))
     
-    config = types.GenerateContentConfig(system_instruction=system_prompt, tools=[{'google_search': {}}, add_calendar_event_tool, change_language_tool])
+    config = types.GenerateContentConfig(system_instruction=system_prompt, tools=[{'google_search': {}}, add_calendar_event_tool, change_language_tool, send_communication_tool])
     reply_text = process_gemini_chat(user, contents, config)
     
     db.session.add(Message(user_id=user.id, role='user', content=incoming_msg))

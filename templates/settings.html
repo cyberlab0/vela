@@ -173,6 +173,10 @@
                                     <input type="checkbox" class="glass-toggle" checked>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
+                                    <span>Read AI Alerts Out Loud</span>
+                                    <input type="checkbox" name="read_notifications_aloud" class="glass-toggle" {% if profile.read_notifications_aloud %}checked{% endif %}>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; align-items: center;">
                                     <span>Quiet Hours</span>
                                     <input type="checkbox" class="glass-toggle">
                                 </div>

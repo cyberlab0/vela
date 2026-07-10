@@ -461,8 +461,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
     socket.on('life_alert', (data) => {
         showToast(data.message);
-        // Automatically speak the notification out loud
-        if (typeof speakText === 'function') {
+        // Automatically speak the notification out loud if permitted
+        if (data.play_audio && typeof speakText === 'function') {
             speakText(data.message);
         }
         
