@@ -197,6 +197,35 @@ def admin_live_feed():
 bg_thread = threading.Thread(target=admin_live_feed, daemon=True)
 bg_thread.start()
 
+def life_planner_engine():
+    """Background task to scan upcoming events and send live alerts."""
+    with app.app_context():
+        while True:
+            time.sleep(30)
+            now_dt = datetime.datetime.now()
+            today = now_dt.date()
+            try:
+                events = Event.query.filter_by(date=today).all()
+                for evt in events:
+                    if evt.time:
+                        evt_dt = datetime.datetime.combine(today, evt.time)
+                        delta = (evt_dt - now_dt).total_seconds() / 60.0
+                        
+                        if 59 <= delta < 60:
+                            msg = f"Hey, your event '{evt.title}' starts in 1 hour."
+                            socketio.emit('life_alert', {'message': msg, 'type': 'alert'}, room=f'user_{evt.user_id}')
+                        elif 14 <= delta < 15:
+                            msg = f"Get ready! '{evt.title}' starts in 15 minutes."
+                            socketio.emit('life_alert', {'message': msg, 'type': 'warning'}, room=f'user_{evt.user_id}')
+                        elif 0 <= delta < 1:
+                            msg = f"It's time to begin: '{evt.title}'!"
+                            socketio.emit('life_alert', {'message': msg, 'type': 'success'}, room=f'user_{evt.user_id}')
+            except Exception as e:
+                pass # Prevent DB session errors from crashing thread
+
+bg_thread2 = threading.Thread(target=life_planner_engine, daemon=True)
+bg_thread2.start()
+
 @socketio.on('connect')
 def handle_connect():
     user_id = session.get('user_id')
@@ -808,6 +837,11 @@ def build_ai_prompt(user_id):
     smart_reply_clause = "SMART REPLY ENGINE: If the user pastes an email or text message and asks for a reply draft (or uses the 'Draft a reply' command), output 3 distinct versions: 1) Formal, 2) Casual, 3) Persuasive. Make them ready to copy-paste."
 
     language_clause = f"CRITICAL LANGUAGE INSTRUCTION: You MUST speak and respond fluently in the user's preferred language ({user.preferred_language}). If the user asks a question in a different language, reply in that language. You natively understand all languages including Spanish, German, Chinese, and Nigerian languages like Igbo, Hausa, and Yoruba."
+    accountability_clause = f"ACCOUNTABILITY SYSTEM: {user.accountability_mode}. "
+    if user.accountability_mode == 'Strict':
+        accountability_clause += "You will enforce strict discipline. Deny requests to waste time. Call out the user if they haven't exercised or worked. "
+
+    planner_clause = "PROACTIVE PLANNER ENGINE: If the user says 'Plan my week', 'Plan my day', or anything similar, DO NOT just give ideas. You must actively ask what they want to do on specific days, structure it, and write it to the calendar using the add_calendar_event tool. Once you use the tool to add an event, proudly tell the user you've scheduled it."
 
     system_prompt = f"""You are VELA, an elite Virtual Executive Life Assistant.
 Current System Date & Time: {now}.
@@ -825,6 +859,7 @@ In addition, incorporate local slang/greetings for someone in {user.country} mat
 CRITICAL ACCURACY INSTRUCTIONS: You MUST use your Google Search tool to verify ALL facts, current events, and dates before answering. Do not guess. Keep responses concise.
 
 {accountability_clause}
+{planner_clause}
 {smart_reply_clause}
 {language_clause}
 """

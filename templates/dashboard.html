@@ -458,6 +458,24 @@ document.addEventListener("DOMContentLoaded", () => {
     socket.on('system_update', (data) => {
         showToast(data.message);
     });
+    
+    socket.on('life_alert', (data) => {
+        showToast(data.message);
+        // Automatically speak the notification out loud
+        if (typeof speakText === 'function') {
+            speakText(data.message);
+        }
+        
+        // Also inject into Life Feed visually
+        const lifeFeed = document.getElementById('life-feed');
+        if (lifeFeed) {
+            const feedItem = document.createElement('div');
+            feedItem.className = `feed-item ${data.type || ''} animate-slide-right`;
+            feedItem.style = "background: rgba(0,0,0,0.4); font-weight: bold; border-left-width: 5px;";
+            feedItem.innerHTML = `<i class="fas fa-bell"></i> ${data.message}`;
+            lifeFeed.insertBefore(feedItem, lifeFeed.firstChild);
+        }
+    });
 });
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
