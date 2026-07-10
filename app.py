@@ -346,7 +346,15 @@ def check_banned_ip():
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('user_id'): return redirect(url_for('login'))
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        # Verify user still exists in DB (fixes 500 errors after Render wipes SQLite)
+        user = db.session.get(User, session['user_id'])
+        if not user:
+            session.clear()
+            return redirect(url_for('login'))
+            
         return f(*args, **kwargs)
     return decorated_function
 
