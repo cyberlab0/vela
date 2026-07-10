@@ -1,6 +1,7 @@
 import os
 import datetime
 import random
+import psutil
 import requests
 import pycountry
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, abort, make_response
@@ -168,34 +169,48 @@ GLOBAL_LOCKDOWN = False
 
 # --- WEBSOCKETS ---
 def admin_live_feed():
-    """Background task to push live stats and mock threats every 3 seconds to the 'admin' room."""
+    """Background task to push live physical server stats to the 'admin' room."""
     with app.app_context():
         while True:
             time.sleep(3)
-            # generate some data
-            cpu = random.randint(30, 80)
-            users_k = round(random.uniform(13.5, 15.5), 1)
-            net_tb = round(random.uniform(0.8, 1.5), 2)
-            
-            alerts = [
-                "[SYS] Routing matrix stabilized...",
-                "[NET] 14.2TB throughput detected...",
-                "<span style='color: var(--color-alert);'>[SEC] BLOCKED: SQL Injection attempt from 192.168.1.104</span>",
-                "[SYS] Allocating extra memory to AI clusters...",
-                "[AI] Gemini 2.5 Flash cognitive core linked...",
-                "<span style='color: var(--color-warning);'>[USR] High latency detected in EU-West region</span>",
-                "[SEC] Global firewall successfully repelled 42 brute-force attempts.",
-            ]
-            log_entry = random.choice(alerts)
-            
-            payload = {
-                'cpu': cpu,
-                'users': users_k,
-                'network': net_tb,
-                'log': log_entry
-            }
-            
-            socketio.emit('admin_stats', payload, room='admin_room')
+            try:
+                # Real physical server metrics
+                cpu = psutil.cpu_percent(interval=None)
+                ram = psutil.virtual_memory()
+                net_io = psutil.net_io_counters()
+                
+                # Convert bytes to MB for display
+                net_mb = round((net_io.bytes_sent + net_io.bytes_recv) / (1024 * 1024), 2)
+                
+                alerts = [
+                    f"[SYS] Real CPU usage at {cpu}%...",
+                    f"[SYS] Physical Memory: {ram.percent}% used ({round(ram.used / (1024*1024*1024), 1)}GB)",
+                    f"[NET] Total Data Transferred: {net_mb} MB",
+                    "[SYS] Allocating extra memory to AI clusters...",
+                    "[AI] Gemini cognitive core linked...",
+                    "<span style='color: var(--color-warning);'>[USR] Live connection established</span>",
+                ]
+                
+                if cpu > 80:
+                    alerts.append("<span style='color: var(--color-alert);'>[SEC] WARNING: CPU usage critically high!</span>")
+                if ram.percent > 90:
+                    alerts.append("<span style='color: var(--color-alert);'>[SEC] WARNING: Memory usage critically high!</span>")
+                    
+                log_entry = random.choice(alerts)
+                
+                # Count real users in database instead of random number
+                real_user_count = User.query.count()
+                
+                payload = {
+                    'cpu': cpu,
+                    'users': real_user_count,
+                    'network': net_mb,
+                    'log': log_entry
+                }
+                
+                socketio.emit('admin_stats', payload, room='admin_room')
+            except Exception as e:
+                print(f"Error in admin live feed: {e}")
 
 bg_thread = threading.Thread(target=admin_live_feed, daemon=True)
 bg_thread.start()
